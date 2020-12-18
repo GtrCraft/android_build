@@ -2229,6 +2229,16 @@ ifeq ($(strip $(BOARD_KERNEL_SEPARATED_DT)),true)
   RECOVERYIMAGE_EXTRA_DEPS    := $(INSTALLED_DTIMAGE_TARGET)
 endif
 
+ifneq ($(TARGET_PREBUILT_RECOVERY_RAMDISK_CPIO),)
+define build-recoveryramdisk
+  @echo -e ${CL_CYN}"----- Extracting recovery ramdisk ------"${CL_RST}
+  $(hide) mkdir -p $(TARGET_RECOVERY_OUT)
+  $(hide) mkdir -p $(TARGET_RECOVERY_ROOT_OUT)
+  $(hide) rm -rf $(TARGET_RECOVERY_ROOT_OUT)/*
+  $(hide) cp $(TARGET_PREBUILT_RECOVERY_RAMDISK_CPIO) $(TARGET_RECOVERY_ROOT_OUT)/prebuilt_ramdisk-recovery.cpio
+  $(hide) cd $(TARGET_RECOVERY_ROOT_OUT) && cpio -id < prebuilt_ramdisk-recovery.cpio && rm -f prebuilt_ramdisk-recovery.cpio
+endef
+else
 $(recovery_uncompressed_ramdisk): $(MKBOOTFS) \
 	    $(INTERNAL_ROOT_FILES) \
 	    $(INSTALLED_RAMDISK_TARGET) \
@@ -2268,6 +2278,7 @@ $(recovery_uncompressed_ramdisk): $(MKBOOTFS) \
 	$(BOARD_RECOVERY_IMAGE_PREPARE)
 	@echo ----- Making uncompressed recovery ramdisk ------
 	$(MKBOOTFS) $(TARGET_RECOVERY_ROOT_OUT) > $@
+endif
 
 $(recovery_ramdisk): $(recovery_uncompressed_ramdisk) $(COMPRESSION_COMMAND_DEPS)
 	@echo ----- Making compressed recovery ramdisk ------
